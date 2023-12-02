@@ -40,8 +40,6 @@ type $SetUnauthenticatedHandlerParams = {
 };
 type $SetUnauthenticatedHandlerResponse = void;
 
-export const getMock = () => new AxiosMockAdapter(axios);
-
 class ApiService<C extends $Config> {
   connection: AxiosInstance;
 
@@ -50,6 +48,8 @@ class ApiService<C extends $Config> {
   requestContextListener: $RequestContextListener;
 
   responseContextListener: $ResponseContextListener;
+
+  mock: AxiosMockAdapter | null;
 
   constructor({
     apiUrl,
@@ -172,6 +172,8 @@ class ApiService<C extends $Config> {
 
       return config;
     });
+
+    this.mock = null;
   }
 
   // Actions
@@ -252,6 +254,10 @@ class ApiService<C extends $Config> {
     ) as $ResponseContext;
 
     this.responseContextListener(cleanResponseContext);
+  }
+
+  initMock() {
+    this.mock = new AxiosMockAdapter(this.connection);
   }
 }
 
