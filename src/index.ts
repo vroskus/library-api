@@ -6,7 +6,7 @@ import type {
 } from 'axios';
 
 // Helpers
-import axios from 'axios';
+import * as axios from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import _ from 'lodash';
 import {
