@@ -6,7 +6,7 @@ import type {
 } from 'axios';
 
 // Helpers
-import axios from 'axios';
+import * as axios from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import _ from 'lodash';
 import {
@@ -66,7 +66,7 @@ class ApiService<C extends $Config> {
       withCredentials: true,
     };
 
-    this.connection = axios.create(connectionConfig);
+    this.connection = axios.default.create(connectionConfig);
 
     this.unauthenticatedHandler = () => {};
 
@@ -256,8 +256,10 @@ class ApiService<C extends $Config> {
     this.responseContextListener(cleanResponseContext);
   }
 
-  initMock() {
+  initMock(mockSetup: (mock: AxiosMockAdapter) => void) {
     this.mock = new AxiosMockAdapter(this.connection);
+
+    mockSetup(this.mock);
   }
 }
 
