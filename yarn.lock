@@ -744,10 +744,10 @@
   "resolved" "https://registry.npmjs.org/@types/minimist/-/minimist-1.2.5.tgz"
   "version" "1.2.5"
 
-"@types/node@*", "@types/node@20.10.2":
-  "integrity" "sha512-37MXfxkb0vuIlRKHNxwCkb60PNBpR94u4efQuN4JgIAm66zfCDXGSAFCef9XUWFovX2R1ok6Z7MHhtdVXXkkIw=="
-  "resolved" "https://registry.npmjs.org/@types/node/-/node-20.10.2.tgz"
-  "version" "20.10.2"
+"@types/node@*", "@types/node@20.10.3":
+  "integrity" "sha512-XJavIpZqiXID5Yxnxv3RUDKTN5b81ddNC3ecsA0SoFXz/QU8OGBwZGMomiq0zw+uuqbL/krztv/DINAQ/EV4gg=="
+  "resolved" "https://registry.npmjs.org/@types/node/-/node-20.10.3.tgz"
+  "version" "20.10.3"
   dependencies:
     "undici-types" "~5.26.4"
 
