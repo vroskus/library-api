@@ -119,8 +119,8 @@ class ApiService<C extends $Config> {
         );
 
         const config: (AxiosRequestConfig<unknown> & {
-          retryQty?: number;
           retryDelay?: number;
+          retryQty?: number;
         }) | void = _.get(
           error,
           'config',
