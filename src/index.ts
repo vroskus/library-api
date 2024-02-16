@@ -51,6 +51,8 @@ class ApiService<C extends $Config> {
 
   mock: AxiosMockAdapter | null;
 
+  path: (arg0: string) => RegExp | string;
+
   constructor({
     apiUrl,
     timeout,
@@ -174,6 +176,17 @@ class ApiService<C extends $Config> {
     });
 
     this.mock = null;
+
+    this.path = (v: string): RegExp | string => {
+      if (v.includes(':')) {
+        return new RegExp(v.replace(
+          /:\w+/g,
+          '[^/]+',
+        ));
+      }
+
+      return v;
+    };
   }
 
   // Actions
