@@ -79,7 +79,7 @@ class ApiService<C extends $Config> {
     this.connection.interceptors.response.use(
       (response) => response,
       (error) => {
-        const status: number | void = _.get(
+        const status: number | undefined = _.get(
           error,
           'response.status',
         );
@@ -99,7 +99,7 @@ class ApiService<C extends $Config> {
         return response;
       },
       (error) => {
-        const response: AxiosResponse<unknown> | void = _.get(
+        const response: AxiosResponse<unknown> | undefined = _.get(
           error,
           'response',
         );
@@ -123,7 +123,7 @@ class ApiService<C extends $Config> {
         const config: (AxiosRequestConfig<unknown> & {
           retryDelay?: number;
           retryQty?: number;
-        }) | void = _.get(
+        }) | undefined = _.get(
           error,
           'config',
         );
@@ -215,7 +215,7 @@ class ApiService<C extends $Config> {
       RequestHeaders: config.headers,
       RequestId: requestId,
       RequestParams: config.params,
-      Route: config.url,
+      Route: config.url || 'Unknown',
     };
 
     const cleanRequestContext = _.omitBy(
@@ -257,7 +257,7 @@ class ApiService<C extends $Config> {
       RequestParams: config.params,
       ResponseData: data,
       ResponseHeaders: headers,
-      Route: config.url,
+      Route: config.url || 'Unknown',
       Status: status,
     };
 
