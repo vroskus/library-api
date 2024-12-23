@@ -10,6 +10,10 @@ const apiConfig: $Config = {
   timeout: 0,
 };
 
+const successStatus: number = 200;
+const oneValue: number = 1;
+const twoValue: number = 2;
+
 class TestApiService<C extends $Config> extends ApiService<C> {
   async testGet() {
     return this.connection.get('/pet/1');
@@ -36,10 +40,10 @@ describe(
           async () => {
             const response = await testApiServiceInstance.testGet();
 
-            expect(response.status).toBe(200);
+            expect(response.status).toBe(successStatus);
             expect(response.data).toHaveProperty(
               'id',
-              1,
+              oneValue,
             );
           },
         );
@@ -61,10 +65,10 @@ describe(
 
             const response = await testApiServiceInstance.testPost(params);
 
-            expect(response.status).toBe(200);
+            expect(response.status).toBe(successStatus);
             expect(response.data).toHaveProperty(
               'id',
-              1,
+              oneValue,
             );
           },
         );
@@ -78,21 +82,22 @@ describe(
           'should make MOCK request',
           async () => {
             testApiServiceInstance.initMock((mock) => {
+              /* eslint-disable-next-line sonarjs/no-nested-functions */
               mock.onGet('/pet/1').reply(() => {
                 const responseBody = {
                   id: 2,
                 };
 
-                return [200, responseBody];
+                return [successStatus, responseBody];
               });
             });
 
             const response = await testApiServiceInstance.testGet();
 
-            expect(response.status).toBe(200);
+            expect(response.status).toBe(successStatus);
             expect(response.data).toHaveProperty(
               'id',
-              2,
+              twoValue,
             );
           },
         );

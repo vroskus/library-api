@@ -23,22 +23,16 @@ import type {
 export * from './types';
 
 type $RequestContextListener = (arg0: $RequestContext) => void;
-type $SetRequestContextListenerParams = {
-  listener: $RequestContextListener;
-};
-type $SetRequestContextListenerResponse = void;
-
 type $ResponseContextListener = (arg0: $ResponseContext) => void;
-type $SetResponseContextListenerParams = {
-  listener: $ResponseContextListener;
-};
-type $SetResponseContextListenerResponse = void;
 
 type $UnauthenticatedHandler = () => unknown;
-type $SetUnauthenticatedHandlerParams = {
-  handler: $UnauthenticatedHandler;
-};
-type $SetUnauthenticatedHandlerResponse = void;
+
+const unauthenticatedStatus: number = 401;
+
+const defaultRetryDelay: number = 3000;
+const defaultRetryQuantity: number = 3;
+const defaultRetryIncrementor: number = 1;
+const zeroValue: number = 0;
 
 class ApiService<C extends $Config> {
   connection: AxiosInstance;
@@ -84,7 +78,7 @@ class ApiService<C extends $Config> {
           'response.status',
         );
 
-        if (status === 401) {
+        if (status === unauthenticatedStatus) {
           this.unauthenticatedHandler();
         }
 
@@ -120,26 +114,28 @@ class ApiService<C extends $Config> {
           'message',
         );
 
-        const config: ({
+        const config: (AxiosRequestConfig<unknown> & {
           retryDelay?: number;
           retryQty?: number;
-        } & AxiosRequestConfig<unknown>) | undefined = _.get(
+        }) | undefined = _.get(
           error,
           'config',
         );
 
         if (config
-          && config.retryQty !== 0
+          && config.retryQty !== zeroValue
           && ['Network Error', 'timeout'].some((e: string) => message.includes(e))
         ) {
-          config.retryQty = typeof config.retryQty === 'undefined' ? 3 : config.retryQty - 1;
+          config.retryQty = typeof config.retryQty === 'undefined'
+            ? defaultRetryQuantity
+            : config.retryQty - defaultRetryIncrementor;
 
           const delayRetryRequest = new Promise((resolve) => {
             setTimeout(
               () => {
                 resolve(null);
               },
-              config.retryDelay || 3000,
+              config.retryDelay || defaultRetryDelay,
             );
           });
 
@@ -192,19 +188,25 @@ class ApiService<C extends $Config> {
   // Actions
   setUnauthenticatedHandler({
     handler,
-  }: $SetUnauthenticatedHandlerParams): $SetUnauthenticatedHandlerResponse {
+  }: {
+    handler: $UnauthenticatedHandler;
+  }): void {
     this.unauthenticatedHandler = handler;
   }
 
   setRequestContextListener({
     listener,
-  }: $SetRequestContextListenerParams): $SetRequestContextListenerResponse {
+  }: {
+    listener: $RequestContextListener;
+  }): void {
     this.requestContextListener = listener;
   }
 
   setResponseContextListener({
     listener,
-  }: $SetResponseContextListenerParams): $SetResponseContextListenerResponse {
+  }: {
+    listener: $ResponseContextListener;
+  }): void {
     this.responseContextListener = listener;
   }
 

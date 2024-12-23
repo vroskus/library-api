@@ -22,21 +22,21 @@
     "test:e2e:post": "jest-coverage-thresholds-bumper"
   },
   "dependencies": {
-    "axios": "^1.7.4",
-    "axios-mock-adapter": "^2.0.0",
+    "axios": "^1.7.9",
+    "axios-mock-adapter": "^2.1.0",
     "lodash": "^4.17.21",
-    "uuid": "^10.0.0"
+    "uuid": "^11.0.3"
   },
   "devDependencies": {
-    "@types/jest": "^29.5.12",
-    "@types/lodash": "^4.17.7",
-    "@types/node": "^22.4.1",
+    "@types/jest": "^29.5.14",
+    "@types/lodash": "^4.17.13",
+    "@types/node": "^22.10.2",
     "@types/query-string": "^6.3.0",
-    "@vroskus/eslint-config": "^1.0.11",
+    "@vroskus/eslint-config": "^1.0.19",
     "jest": "^29.7.0",
     "jest-coverage-thresholds-bumper": "^1.1.0",
-    "ts-jest": "^29.2.4",
-    "typescript": "^5.4.5"
+    "ts-jest": "^29.2.5",
+    "typescript": "^5.7.2"
   },
   "jest": {
     "preset": "ts-jest",
@@ -51,10 +51,10 @@
     ],
     "coverageThreshold": {
       "global": {
-        "branches": 52.77,
-        "functions": 48.27,
-        "lines": 67.85,
-        "statements": 65.26
+        "branches": 51.35,
+        "functions": 50,
+        "lines": 68.75,
+        "statements": 65.76
       }
     }
   }
