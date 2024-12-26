@@ -32,7 +32,7 @@
     "@types/lodash": "^4.17.13",
     "@types/node": "^22.10.2",
     "@types/query-string": "^6.3.0",
-    "@vroskus/eslint-config": "^1.0.21",
+    "@vroskus/eslint-config": "^1.0.23",
     "jest": "^29.7.0",
     "jest-coverage-thresholds-bumper": "^1.1.0",
     "ts-jest": "^29.2.5",
