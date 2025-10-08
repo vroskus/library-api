@@ -9,9 +9,6 @@ import type {
 import * as axios from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import _ from 'lodash';
-import {
-  v4 as uuidv4,
-} from 'uuid';
 
 // Types
 import type {
@@ -147,7 +144,7 @@ class ApiService<C extends $Config> {
     );
 
     this.connection.interceptors.request.use((config) => {
-      const requestId: string = uuidv4();
+      const requestId: string = crypto.randomUUID();
 
       _.set(
         config,

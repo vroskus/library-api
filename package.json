@@ -24,8 +24,7 @@
   "dependencies": {
     "axios": "^1.8.4",
     "axios-mock-adapter": "^2.1.0",
-    "lodash": "^4.17.21",
-    "uuid": "^11.1.0"
+    "lodash": "^4.17.21"
   },
   "devDependencies": {
     "@types/jest": "^29.5.14",
@@ -53,8 +52,8 @@
       "global": {
         "branches": 51.35,
         "functions": 50,
-        "lines": 68.75,
-        "statements": 65.76
+        "lines": 68.42,
+        "statements": 65.45
       }
     }
   }
