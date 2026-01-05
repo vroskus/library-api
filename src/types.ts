@@ -1,5 +1,11 @@
+// Types
+import type {
+  Agent,
+} from 'https';
+
 export type $Config = {
   apiUrl: string;
+  httpsAgent?: Agent;
   timeout: number;
 };
 

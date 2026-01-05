@@ -46,6 +46,7 @@ class ApiService<C extends $Config> {
 
   constructor({
     apiUrl,
+    httpsAgent,
     timeout,
   }: C) {
     // Connection setup
@@ -55,6 +56,7 @@ class ApiService<C extends $Config> {
         Accept: 'application/json',
         'Content-Type': 'application/json',
       },
+      httpsAgent,
       timeout,
       withCredentials: true,
     };
