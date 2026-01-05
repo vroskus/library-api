@@ -5,6 +5,7 @@ import type {
 
 export type $Config = {
   apiUrl: string;
+  headers?: Record<string, string>;
   httpsAgent?: Agent;
   timeout: number;
 };
