@@ -15,8 +15,9 @@
   ],
   "scripts": {
     "build": "tsc",
-    "test": "npm run test:eslint && npm run test:e2e",
+    "test": "npm run test:eslint && npm run test:type && npm run test:e2e",
     "test:eslint": "eslint src test --fix",
+    "test:type": "tsc",
     "test:e2e": "npm run test:e2e:run && npm run test:e2e:post",
     "test:e2e:run": "jest --ci --colors",
     "test:e2e:post": "jest-coverage-thresholds-bumper"
@@ -28,10 +29,11 @@
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
-    "@types/lodash": "^4.17.16",
-    "@types/node": "^25.0.3",
+    "@types/lodash": "^4.17.23",
+    "@types/node": "^25.0.9",
     "@types/query-string": "^6.3.0",
     "@vroskus/eslint-config": "^1.0.30",
+    "express": "^5.2.1",
     "jest": "^30.2.0",
     "jest-coverage-thresholds-bumper": "^1.1.0",
     "ts-jest": "^29.3.1",

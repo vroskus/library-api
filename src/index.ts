@@ -148,30 +148,32 @@ class ApiService<C extends $Config> {
       },
     );
 
-    this.connection.interceptors.request.use((config) => {
-      const requestId: string = crypto.randomUUID();
+    this.connection.interceptors.request.use(
+      (config) => {
+        const requestId: string = crypto.randomUUID();
 
-      _.set(
-        config,
-        'headers.X-Request-Id',
-        requestId,
-      );
+        _.set(
+          config,
+          'headers.X-Request-Id',
+          requestId,
+        );
 
-      const startTimestamp: number = performance.now();
+        const startTimestamp: number = performance.now();
 
-      _.set(
-        config,
-        'startTimestamp',
-        startTimestamp,
-      );
+        _.set(
+          config,
+          'startTimestamp',
+          startTimestamp,
+        );
 
-      this.pushRequestContext(
-        config,
-        requestId,
-      );
+        this.pushRequestContext(
+          config,
+          requestId,
+        );
 
-      return config;
-    });
+        return config;
+      },
+    );
 
     this.mock = null;
 
