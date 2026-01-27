@@ -40,7 +40,7 @@ class ApiService<C extends $Config> {
 
   responseContextListener: $ResponseContextListener;
 
-  mock: AxiosMockAdapter | null;
+  mockAdapter: AxiosMockAdapter | null;
 
   path: (arg0: string) => RegExp | string;
 
@@ -175,7 +175,7 @@ class ApiService<C extends $Config> {
       },
     );
 
-    this.mock = null;
+    this.mockAdapter = null;
 
     this.path = (v: string): RegExp | string => {
       if (v.includes(':')) {
@@ -275,10 +275,18 @@ class ApiService<C extends $Config> {
     this.responseContextListener(cleanResponseContext);
   }
 
-  initMock(mockSetup: (mock: AxiosMockAdapter) => void) {
-    this.mock = new AxiosMockAdapter(this.connection);
+  initMock(
+    mockSetup: (mockAdapter: AxiosMockAdapter) => void,
+    delay?: number,
+  ) {
+    this.mockAdapter = new AxiosMockAdapter(
+      this.connection,
+      {
+        delayResponse: delay,
+      },
+    );
 
-    mockSetup(this.mock);
+    mockSetup(this.mockAdapter);
   }
 }
 
