@@ -13,6 +13,7 @@ import _ from 'lodash';
 // Types
 import type {
   $Config,
+  $ConfigInterceptors,
   $RequestContext,
   $ResponseContext,
 } from './types';
@@ -34,20 +35,21 @@ const zeroValue: number = 0;
 class ApiService<C extends $Config> {
   connection: AxiosInstance;
 
-  unauthenticatedHandler: $UnauthenticatedHandler;
+  #unauthenticatedHandler: $UnauthenticatedHandler;
 
-  requestContextListener: $RequestContextListener;
+  #requestContextListener: $RequestContextListener;
 
-  responseContextListener: $ResponseContextListener;
+  #responseContextListener: $ResponseContextListener;
 
   mockAdapter: AxiosMockAdapter | null;
 
-  path: (arg0: string) => RegExp | string;
+  expressRouteToMockRoute: (arg0: string) => RegExp | string;
 
   constructor({
     apiUrl,
     headers,
     httpsAgent,
+    interceptors,
     timeout,
   }: C) {
     // Connection setup
@@ -66,118 +68,15 @@ class ApiService<C extends $Config> {
 
     this.connection = axios.default.create(connectionConfig);
 
-    this.unauthenticatedHandler = () => {};
+    this.#unauthenticatedHandler = () => {};
 
-    this.requestContextListener = () => {};
+    this.#requestContextListener = () => {};
 
-    this.responseContextListener = () => {};
-
-    this.connection.interceptors.response.use(
-      (response) => response,
-      (error) => {
-        const status: number | undefined = _.get(
-          error,
-          'response.status',
-        );
-
-        if (status === unauthenticatedStatus) {
-          this.unauthenticatedHandler();
-        }
-
-        return Promise.reject(error);
-      },
-    );
-
-    this.connection.interceptors.response.use(
-      (response) => {
-        this.pushResponseContext(response);
-
-        return response;
-      },
-      (error) => {
-        const response: AxiosResponse<unknown> | undefined = _.get(
-          error,
-          'response',
-        );
-
-        if (response) {
-          this.pushResponseContext(response);
-        }
-
-        return Promise.reject(error);
-      },
-    );
-
-    this.connection.interceptors.response.use(
-      undefined,
-      (error) => {
-        const message: string = _.get(
-          error,
-          'message',
-        );
-
-        const config: (AxiosRequestConfig<unknown> & {
-          retryDelay?: number;
-          retryQty?: number;
-        }) | undefined = _.get(
-          error,
-          'config',
-        );
-
-        if (config
-          && config.retryQty !== zeroValue
-          && ['Network Error', 'timeout'].some((e: string) => message.includes(e))
-        ) {
-          config.retryQty = typeof config.retryQty === 'undefined'
-            ? defaultRetryQuantity
-            : config.retryQty - defaultRetryIncrementor;
-
-          const delayRetryRequest = new Promise((resolve) => {
-            setTimeout(
-              () => {
-                resolve(null);
-              },
-              config.retryDelay || defaultRetryDelay,
-            );
-          });
-
-          return delayRetryRequest.then(() => this.connection.request(config));
-        }
-
-        return Promise.reject(error);
-      },
-    );
-
-    this.connection.interceptors.request.use(
-      (config) => {
-        const requestId: string = crypto.randomUUID();
-
-        _.set(
-          config,
-          'headers.X-Request-Id',
-          requestId,
-        );
-
-        const startTimestamp: number = performance.now();
-
-        _.set(
-          config,
-          'startTimestamp',
-          startTimestamp,
-        );
-
-        this.pushRequestContext(
-          config,
-          requestId,
-        );
-
-        return config;
-      },
-    );
+    this.#responseContextListener = () => {};
 
     this.mockAdapter = null;
 
-    this.path = (v: string): RegExp | string => {
+    this.expressRouteToMockRoute = (v: string): RegExp | string => {
       if (v.includes(':')) {
         return new RegExp(v.replace(
           /:\w+/g,
@@ -187,34 +86,143 @@ class ApiService<C extends $Config> {
 
       return v;
     };
+
+    const interceptorsConfig: $ConfigInterceptors = {
+      context: true,
+      requestReplay: true,
+      unauth: true,
+      ...interceptors || {
+      },
+    };
+
+    this.#initInterceptors(interceptorsConfig);
+  }
+
+  #initInterceptors(interceptorsConfig: $ConfigInterceptors): void {
+    if (interceptorsConfig.unauth !== false) {
+      this.connection.interceptors.response.use(
+        (response) => response,
+        (error) => {
+          const status: number | undefined = _.get(
+            error,
+            'response.status',
+          );
+
+          if (status === unauthenticatedStatus) {
+            this.#unauthenticatedHandler();
+          }
+
+          return Promise.reject(error);
+        },
+      );
+    }
+
+    if (interceptorsConfig.context !== false) {
+      this.connection.interceptors.request.use(
+        (config) => {
+          const requestId: string = crypto.randomUUID();
+
+          _.set(
+            config,
+            'headers.X-Request-Id',
+            requestId,
+          );
+
+          const startTimestamp: number = performance.now();
+
+          _.set(
+            config,
+            'startTimestamp',
+            startTimestamp,
+          );
+
+          this.#pushRequestContext(
+            config,
+            requestId,
+          );
+
+          return config;
+        },
+      );
+
+      this.connection.interceptors.response.use(
+        (response) => {
+          this.#pushResponseContext(response);
+
+          return response;
+        },
+        (error) => {
+          const response: AxiosResponse<unknown> | undefined = _.get(
+            error,
+            'response',
+          );
+
+          if (response) {
+            this.#pushResponseContext(response);
+          }
+
+          return Promise.reject(error);
+        },
+      );
+    }
+
+    if (interceptorsConfig.requestReplay !== false) {
+      this.connection.interceptors.response.use(
+        undefined,
+        (error) => {
+          const message: string = _.get(
+            error,
+            'message',
+          );
+
+          const config: (AxiosRequestConfig<unknown> & {
+            retryDelay?: number;
+            retryQty?: number;
+          }) | undefined = _.get(
+            error,
+            'config',
+          );
+
+          if (config
+            && config.retryQty !== zeroValue
+            && ['Network Error', 'timeout'].some((e: string) => message.includes(e))
+          ) {
+            config.retryQty = typeof config.retryQty === 'undefined'
+              ? defaultRetryQuantity
+              : config.retryQty - defaultRetryIncrementor;
+
+            const delayRetryRequest = new Promise((resolve) => {
+              setTimeout(
+                () => {
+                  resolve(null);
+                },
+                config.retryDelay || defaultRetryDelay,
+              );
+            });
+
+            return delayRetryRequest.then(() => this.connection.request(config));
+          }
+
+          return Promise.reject(error);
+        },
+      );
+    }
   }
 
   // Actions
-  setUnauthenticatedHandler({
-    handler,
-  }: {
-    handler: $UnauthenticatedHandler;
-  }): void {
-    this.unauthenticatedHandler = handler;
+  setUnauthenticatedHandler(handler: $UnauthenticatedHandler): void {
+    this.#unauthenticatedHandler = handler;
   }
 
-  setRequestContextListener({
-    listener,
-  }: {
-    listener: $RequestContextListener;
-  }): void {
-    this.requestContextListener = listener;
+  setRequestContextListener(listener: $RequestContextListener): void {
+    this.#requestContextListener = listener;
   }
 
-  setResponseContextListener({
-    listener,
-  }: {
-    listener: $ResponseContextListener;
-  }): void {
-    this.responseContextListener = listener;
+  setResponseContextListener(listener: $ResponseContextListener): void {
+    this.#responseContextListener = listener;
   }
 
-  pushRequestContext(config: AxiosRequestConfig<unknown>, requestId: string) {
+  #pushRequestContext(config: AxiosRequestConfig<unknown>, requestId: string) {
     const requestContext: $RequestContext = {
       Method: `${(config.method || 'Unknown').toUpperCase()}`,
       RequestData: config.data,
@@ -229,10 +237,10 @@ class ApiService<C extends $Config> {
       _.isUndefined,
     ) as $RequestContext;
 
-    this.requestContextListener(cleanRequestContext);
+    this.#requestContextListener(cleanRequestContext);
   }
 
-  pushResponseContext(response: AxiosResponse<unknown>) {
+  #pushResponseContext(response: AxiosResponse<unknown>) {
     const requestId: string = _.get(
       response.config,
       'headers.X-Request-Id',
@@ -257,7 +265,7 @@ class ApiService<C extends $Config> {
     const responseContext: $ResponseContext = {
       Duration: endTimestamp - startTimestamp,
       Method: `${(config.method || 'Unknown').toUpperCase()}`,
-      RequestData: config.data,
+      RequestData: config.data ? JSON.parse(config.data) : undefined,
       RequestHeaders: config.headers,
       RequestId: requestId,
       RequestParams: config.params,
@@ -272,7 +280,7 @@ class ApiService<C extends $Config> {
       _.isUndefined,
     ) as $ResponseContext;
 
-    this.responseContextListener(cleanResponseContext);
+    this.#responseContextListener(cleanResponseContext);
   }
 
   initMock(
