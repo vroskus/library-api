@@ -3,10 +3,17 @@ import type {
   Agent,
 } from 'https';
 
+export type $ConfigInterceptors = {
+  context?: boolean;
+  requestReplay?: boolean;
+  unauth?: boolean;
+};
+
 export type $Config = {
   apiUrl: string;
   headers?: Record<string, string>;
   httpsAgent?: Agent;
+  interceptors?: $ConfigInterceptors;
   timeout: number;
 };
 
