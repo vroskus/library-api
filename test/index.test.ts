@@ -1,4 +1,5 @@
 import express from 'express';
+import url from 'url';
 import ApiService from '../src';
 
 // Types
@@ -12,16 +13,19 @@ const oneValue: number = 1;
 const twoValue: number = 2;
 const port: number = 3000;
 
-const defaultResponseData = {
-  id: oneValue,
-  ok: true,
+const miniData = {
+  id: '123',
 };
+const maxiData = {
+  id1: oneValue,
+  id2: true,
+  id3: 'ok',
+};
+
 const unauthEndpoint: string = '/auth';
-const unauthEndpointData = defaultResponseData;
 const getEndpoint: string = '/get';
-const getEndpointData = defaultResponseData;
 const postEndpoint: string = '/post';
-const postEndpointData = defaultResponseData;
+const postUrlencodedEndpoint: string = '/post_urlencoded';
 
 const apiConfig: $Config = {
   apiUrl: `http://127.0.0.1:${port}`,
@@ -38,7 +42,7 @@ const startServer = () => {
   app.get(
     getEndpoint,
     (req, res) => {
-      res.json(getEndpointData);
+      res.json(req.query);
     },
   );
 
@@ -49,10 +53,24 @@ const startServer = () => {
     },
   );
 
+  app.post(
+    postUrlencodedEndpoint,
+    express.urlencoded({
+      extended: true,
+      inflate: true,
+      limit: '1mb',
+      parameterLimit: 5000,
+      type: 'application/x-www-form-urlencoded',
+    }),
+    (req, res) => {
+      res.json(req.body);
+    },
+  );
+
   app.get(
     unauthEndpoint,
     (req, res) => {
-      res.status(unauthStatus).json(unauthEndpointData);
+      res.status(unauthStatus).json(miniData);
     },
   );
 
@@ -60,16 +78,39 @@ const startServer = () => {
 };
 
 class TestApiService<C extends $Config> extends ApiService<C> {
-  async testGet(endpoint: string) {
+  async testGet(endpoint: string, params?: Record<string, unknown>) {
     return this.connection.get(
       endpoint,
+      params,
     );
   }
 
-  async testPost(endpoint: string, params: Record<string, unknown>) {
+  async testPost(
+    endpoint: string,
+    params: Record<string, unknown> | string,
+    options?: Record<string, unknown>,
+  ) {
     return this.connection.post(
       endpoint,
       params,
+      options,
+    );
+  }
+
+  async testPostUrlencoded(
+    endpoint: string,
+    params: Record<string, string>,
+  ) {
+    const urlParams = new url.URLSearchParams(params);
+
+    return this.connection.post(
+      endpoint,
+      urlParams.toString(),
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      },
     );
   }
 }
@@ -97,10 +138,28 @@ describe(
         it(
           'should make GET request',
           async () => {
-            const response = await testApiServiceInstance.testGet(getEndpoint);
+            const response = await testApiServiceInstance.testGet(
+              getEndpoint,
+              {
+                params: miniData,
+              },
+            );
 
             expect(response.status).toBe(successStatus);
-            expect(response.data).toMatchObject(getEndpointData);
+            expect(response.data).toMatchObject(miniData);
+          },
+        );
+
+        it(
+          'should make GET request urlencoded',
+          async () => {
+            const response = await testApiServiceInstance.testPostUrlencoded(
+              postUrlencodedEndpoint,
+              miniData,
+            );
+
+            expect(response.status).toBe(successStatus);
+            expect(response.data).toMatchObject(miniData);
           },
         );
 
@@ -109,11 +168,11 @@ describe(
           async () => {
             const response = await testApiServiceInstance.testPost(
               postEndpoint,
-              postEndpointData,
+              maxiData,
             );
 
             expect(response.status).toBe(successStatus);
-            expect(response.data).toMatchObject(postEndpointData);
+            expect(response.data).toMatchObject(maxiData);
           },
         );
       },
@@ -204,7 +263,7 @@ describe(
           'should make MOCK request',
           async () => {
             const mockData = {
-              ...getEndpointData,
+              ...miniData,
               id: twoValue,
             };
 
@@ -221,6 +280,21 @@ describe(
 
             expect(response.status).toBe(successStatus);
             expect(response.data).toMatchObject(mockData);
+          },
+        );
+      },
+    );
+
+    describe(
+      'helpers',
+      () => {
+        it(
+          'should help',
+          async () => {
+            const input = '/:some/param/:random/string?ok=123';
+            const output = /\/[^/]+\/param\/[^/]+\/string?ok=123/;
+
+            expect(testApiServiceInstance.expressRouteToMockRoute(input)).toStrictEqual(output);
           },
         );
       },

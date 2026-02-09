@@ -28,6 +28,40 @@ const defaultRetryQuantity: number = 3;
 const defaultRetryIncrementor: number = 1;
 const zeroValue: number = 0;
 
+const isRecord = (obj: unknown): obj is Record<string, unknown> => {
+  if (obj === null || typeof obj !== 'object') {
+    return false;
+  }
+
+  if (Array.isArray(obj)) {
+    return false;
+  }
+
+  if (Object.getOwnPropertySymbols(obj).length > zeroValue) {
+    return false;
+  }
+
+  return true;
+};
+
+const parseRequestData = (value: unknown): Record<string, unknown> | undefined => {
+  if (typeof value === 'string') {
+    try {
+      return JSON.parse(value);
+    } catch (_e) {
+      if (_e) {
+        return Object.fromEntries(new URLSearchParams(value));
+      }
+    }
+  }
+
+  if (isRecord(value) === true) {
+    return value;
+  }
+
+  return undefined;
+};
+
 class ApiService<C extends $Config> {
   connection: $Connection;
 
@@ -261,7 +295,7 @@ class ApiService<C extends $Config> {
     const responseContext: $ResponseContext = {
       Duration: endTimestamp - startTimestamp,
       Method: `${(config.method || 'Unknown').toUpperCase()}`,
-      RequestData: config.data ? JSON.parse(config.data) : undefined,
+      RequestData: parseRequestData(config.data),
       RequestHeaders: config.headers,
       RequestId: requestId,
       RequestParams: config.params,
