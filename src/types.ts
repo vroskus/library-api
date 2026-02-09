@@ -2,6 +2,20 @@
 import type {
   Agent,
 } from 'https';
+import type {
+  AxiosInstance,
+  AxiosRequestConfig,
+  AxiosResponse,
+} from 'axios';
+import type AxiosMockAdapter from 'axios-mock-adapter';
+
+export type $Connection = AxiosInstance;
+
+export type $RequestConfig<V> = AxiosRequestConfig<V>;
+
+export type $Response<V> = AxiosResponse<V>;
+
+export type $MockAdapter = AxiosMockAdapter;
 
 export type $ConfigInterceptors = {
   context?: boolean;

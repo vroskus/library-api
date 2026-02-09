@@ -1,10 +1,3 @@
-// Global Types
-import type {
-  AxiosInstance,
-  AxiosRequestConfig,
-  AxiosResponse,
-} from 'axios';
-
 // Helpers
 import * as axios from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
@@ -14,7 +7,10 @@ import _ from 'lodash';
 import type {
   $Config,
   $ConfigInterceptors,
+  $Connection,
+  $RequestConfig,
   $RequestContext,
+  $Response,
   $ResponseContext,
 } from './types';
 
@@ -33,7 +29,7 @@ const defaultRetryIncrementor: number = 1;
 const zeroValue: number = 0;
 
 class ApiService<C extends $Config> {
-  connection: AxiosInstance;
+  connection: $Connection;
 
   #unauthenticatedHandler: $UnauthenticatedHandler;
 
@@ -152,7 +148,7 @@ class ApiService<C extends $Config> {
           return response;
         },
         (error) => {
-          const response: AxiosResponse<unknown> | undefined = _.get(
+          const response: $Response<unknown> | undefined = _.get(
             error,
             'response',
           );
@@ -175,7 +171,7 @@ class ApiService<C extends $Config> {
             'message',
           );
 
-          const config: (AxiosRequestConfig<unknown> & {
+          const config: ($RequestConfig<unknown> & {
             retryDelay?: number;
             retryQty?: number;
           }) | undefined = _.get(
@@ -222,7 +218,7 @@ class ApiService<C extends $Config> {
     this.#responseContextListener = listener;
   }
 
-  #pushRequestContext(config: AxiosRequestConfig<unknown>, requestId: string) {
+  #pushRequestContext(config: $RequestConfig<unknown>, requestId: string) {
     const requestContext: $RequestContext = {
       Method: `${(config.method || 'Unknown').toUpperCase()}`,
       RequestData: config.data,
@@ -240,7 +236,7 @@ class ApiService<C extends $Config> {
     this.#requestContextListener(cleanRequestContext);
   }
 
-  #pushResponseContext(response: AxiosResponse<unknown>) {
+  #pushResponseContext(response: $Response<unknown>) {
     const requestId: string = _.get(
       response.config,
       'headers.X-Request-Id',
