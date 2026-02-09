@@ -267,13 +267,12 @@ describe(
               id: twoValue,
             };
 
-            testApiServiceInstance.initMock((mockAdapter) => {
-              /* eslint-disable-next-line sonarjs/no-nested-functions */
-              mockAdapter.onGet(getEndpoint).reply(() => {
-                const responseBody = mockData;
+            const mockAdapter = testApiServiceInstance.initMockAdapter();
 
-                return [successStatus, responseBody];
-              });
+            mockAdapter.onGet(getEndpoint).reply(() => {
+              const responseBody = mockData;
+
+              return [successStatus, responseBody];
             });
 
             const response = await testApiServiceInstance.testGet(getEndpoint);

@@ -8,6 +8,7 @@ import type {
   $Config,
   $ConfigInterceptors,
   $Connection,
+  $MockAdapter,
   $RequestConfig,
   $RequestContext,
   $Response,
@@ -71,8 +72,6 @@ class ApiService<C extends $Config> {
 
   #responseContextListener: $ResponseContextListener;
 
-  mockAdapter: AxiosMockAdapter | null;
-
   expressRouteToMockRoute: (arg0: string) => RegExp | string;
 
   constructor({
@@ -103,8 +102,6 @@ class ApiService<C extends $Config> {
     this.#requestContextListener = () => {};
 
     this.#responseContextListener = () => {};
-
-    this.mockAdapter = null;
 
     this.expressRouteToMockRoute = (v: string): RegExp | string => {
       if (v.includes(':')) {
@@ -313,18 +310,15 @@ class ApiService<C extends $Config> {
     this.#responseContextListener(cleanResponseContext);
   }
 
-  initMock(
-    mockSetup: (mockAdapter: AxiosMockAdapter) => void,
-    delay?: number,
-  ) {
-    this.mockAdapter = new AxiosMockAdapter(
+  initMockAdapter(
+    delayResponse?: number,
+  ): $MockAdapter {
+    return new AxiosMockAdapter(
       this.connection,
       {
-        delayResponse: delay,
+        delayResponse,
       },
     );
-
-    mockSetup(this.mockAdapter);
   }
 }
 
