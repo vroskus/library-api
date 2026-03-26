@@ -63,6 +63,12 @@ const parseRequestData = (value: unknown): Record<string, unknown> | undefined =
   return undefined;
 };
 
+const getRequestId = (config: $RequestConfig<unknown>): string => _.get(
+  config,
+  'headers.X-Request-Id',
+  '',
+);
+
 class ApiService<C extends $Config> {
   connection: $Connection;
 
@@ -126,6 +132,24 @@ class ApiService<C extends $Config> {
   }
 
   #initInterceptors(interceptorsConfig: $ConfigInterceptors): void {
+    this.connection.interceptors.request.use(
+      (config) => {
+        const newRequestId: string = crypto.randomUUID();
+
+        const requestId = getRequestId(config);
+
+        if (requestId === '') {
+          _.set(
+            config,
+            'headers.X-Request-Id',
+            newRequestId,
+          );
+        }
+
+        return config;
+      },
+    );
+
     if (interceptorsConfig.unauth !== false) {
       this.connection.interceptors.response.use(
         (response) => response,
@@ -147,14 +171,6 @@ class ApiService<C extends $Config> {
     if (interceptorsConfig.context !== false) {
       this.connection.interceptors.request.use(
         (config) => {
-          const requestId: string = crypto.randomUUID();
-
-          _.set(
-            config,
-            'headers.X-Request-Id',
-            requestId,
-          );
-
           const startTimestamp: number = performance.now();
 
           _.set(
@@ -165,7 +181,6 @@ class ApiService<C extends $Config> {
 
           this.#pushRequestContext(
             config,
-            requestId,
           );
 
           return config;
@@ -234,6 +249,19 @@ class ApiService<C extends $Config> {
         },
       );
     }
+
+    if (interceptorsConfig.debug !== false) {
+      this.connection.interceptors.request.use((requestConfig) => {
+        console.info(
+          'Request:',
+          requestConfig.method,
+          requestConfig.url,
+          requestConfig.data,
+        );
+
+        return requestConfig;
+      });
+    }
   }
 
   // Actions
@@ -249,12 +277,13 @@ class ApiService<C extends $Config> {
     this.#responseContextListener = listener;
   }
 
-  #pushRequestContext(config: $RequestConfig<unknown>, requestId: string) {
+  #pushRequestContext(config: $RequestConfig<unknown>) {
     const requestContext: $RequestContext = {
+      Domain: config.baseURL || 'Unknown',
       Method: `${(config.method || 'Unknown').toUpperCase()}`,
       RequestData: config.data,
       RequestHeaders: config.headers,
-      RequestId: requestId,
+      RequestId: getRequestId(config),
       RequestParams: config.params,
       Route: config.url || 'Unknown',
     };
@@ -268,12 +297,6 @@ class ApiService<C extends $Config> {
   }
 
   #pushResponseContext(response: $Response<unknown>) {
-    const requestId: string = _.get(
-      response.config,
-      'headers.X-Request-Id',
-      '',
-    );
-
     const {
       config,
       data,
@@ -290,11 +313,12 @@ class ApiService<C extends $Config> {
     );
 
     const responseContext: $ResponseContext = {
+      Domain: config.baseURL || 'Unknown',
       Duration: endTimestamp - startTimestamp,
       Method: `${(config.method || 'Unknown').toUpperCase()}`,
       RequestData: parseRequestData(config.data),
       RequestHeaders: config.headers,
-      RequestId: requestId,
+      RequestId: getRequestId(config),
       RequestParams: config.params,
       ResponseData: data,
       ResponseHeaders: headers,

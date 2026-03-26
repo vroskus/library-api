@@ -1,7 +1,7 @@
 // Types
 import type {
   Agent,
-} from 'https';
+} from 'node:https';
 import type {
   AxiosInstance,
   AxiosRequestConfig,
@@ -19,6 +19,7 @@ export type $MockAdapter = AxiosMockAdapter;
 
 export type $ConfigInterceptors = {
   context?: boolean;
+  debug?: boolean;
   requestReplay?: boolean;
   unauth?: boolean;
 };
@@ -32,6 +33,7 @@ export type $Config = {
 };
 
 export type $RequestContext = {
+  Domain: string;
   Method: string;
   RequestData?: unknown;
   RequestHeaders: unknown;
@@ -41,6 +43,7 @@ export type $RequestContext = {
 };
 
 export type $ResponseContext = {
+  Domain: string;
   Duration: number;
   Method: string;
   RequestData?: Record<string, unknown>;

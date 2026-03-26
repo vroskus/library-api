@@ -193,6 +193,26 @@ describe(
         );
 
         it(
+          'should set custom X-Request-Id header on request',
+          async () => {
+            const requestId = 'custom';
+
+            const response = await testApiServiceInstance.testGet(
+              getEndpoint,
+              {
+                headers: {
+                  'X-Request-Id': requestId,
+                },
+              },
+            );
+
+            expect(response.status).toBe(successStatus);
+            expect(response.config.headers['X-Request-Id']).toBeDefined();
+            expect(response.config.headers['X-Request-Id']).toBe(requestId);
+          },
+        );
+
+        it(
           'should set context on request and response',
           async () => {
             const params = {
