@@ -103,11 +103,14 @@ class ApiService<C extends $Config> {
 
     this.connection = axios.default.create(connectionConfig);
 
-    this.#unauthenticatedHandler = () => {};
+    this.#unauthenticatedHandler = () => {
+    };
 
-    this.#requestContextListener = () => {};
+    this.#requestContextListener = () => {
+    };
 
-    this.#responseContextListener = () => {};
+    this.#responseContextListener = () => {
+    };
 
     this.expressRouteToMockRoute = (v: string): RegExp | string => {
       if (v.includes(':')) {
@@ -227,7 +230,10 @@ class ApiService<C extends $Config> {
 
           if (config
             && config.retryQty !== zeroValue
-            && ['Network Error', 'timeout'].some((e: string) => message.includes(e))
+            && [
+              'Network Error',
+              'timeout',
+            ].some((e: string) => message.includes(e))
           ) {
             config.retryQty = typeof config.retryQty === 'undefined'
               ? defaultRetryQuantity

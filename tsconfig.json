@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
-    "outDir": "./dist/",
+    "rootDir": "src",
+    "outDir": "dist",
     "module": "commonjs",
     "esModuleInterop": true,
     "declaration": true,
@@ -14,14 +15,17 @@
     "strict": true,
     "lib": [
       "dom",
-      "es6"
+      "ES2020"
+    ],
+    "types": [
+      "node",
+      "jest"
     ]
   },
   "exclude": [
-    "node_modules",
-    "./dist/**/*"
+    "node_modules"
   ],
-   "include": [
-    "./src"
+  "include": [
+    "src"
   ]
 }

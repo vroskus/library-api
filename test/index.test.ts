@@ -292,7 +292,10 @@ describe(
             mockAdapter.onGet(getEndpoint).reply(() => {
               const responseBody = mockData;
 
-              return [successStatus, responseBody];
+              return [
+                successStatus,
+                responseBody,
+              ];
             });
 
             const response = await testApiServiceInstance.testGet(getEndpoint);
