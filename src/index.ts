@@ -134,11 +134,11 @@ class ApiService<C extends $Config> {
   #initInterceptors(interceptorsConfig: $ConfigInterceptors): void {
     this.connection.interceptors.request.use(
       (config) => {
-        const newRequestId: string = crypto.randomUUID();
-
         const requestId = getRequestId(config);
 
         if (requestId === '') {
+          const newRequestId: string = crypto.randomUUID();
+
           _.set(
             config,
             'headers.X-Request-Id',
