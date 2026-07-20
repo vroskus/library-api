@@ -256,7 +256,7 @@ class ApiService<C extends $Config> {
       );
     }
 
-    if (interceptorsConfig.debug !== false) {
+    if (interceptorsConfig.debug === true) {
       this.connection.interceptors.request.use((requestConfig) => {
         console.info(
           'Request:',

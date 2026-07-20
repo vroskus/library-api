@@ -29,6 +29,9 @@ const postUrlencodedEndpoint: string = '/post_urlencoded';
 
 const apiConfig: $Config = {
   apiUrl: `http://127.0.0.1:${port}`,
+  interceptors: {
+    debug: true,
+  },
   timeout: 0,
 };
 
